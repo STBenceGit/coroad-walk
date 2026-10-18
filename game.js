@@ -59,8 +59,21 @@ function lane(kind, dir, speed, lenR, gapR) {
 }
 function push(row) { g.rows.push(row); return g.rows.length - 1; }
 function scatter(row, nT, nC, free) {
-  for (let i = 0; i < nT; i++) { const c = ri(0, COLS - 1); if (!free || !free.includes(c)) row.trees.add(c); }
-  for (let i = 0; i < nC; i++) { const c = ri(0, COLS - 1); if (!row.trees.has(c)) row.coins.add(c); }
+  // build a set of forbidden columns:
+  const forbidden = new Set();
+  if (Array.isArray(free)) for (const c of free) forbidden.add(c);
+  // never place trees on gate columns or plate columns (they must remain clear for players)
+  if (row.gate && Array.isArray(row.gate.cols)) for (const c of row.gate.cols) forbidden.add(c);
+  if (Array.isArray(row.plates)) for (const c of row.plates) forbidden.add(c);
+
+  for (let i = 0; i < nT; i++) {
+    const c = ri(0, COLS - 1);
+    if (!forbidden.has(c)) row.trees.add(c);
+  }
+  for (let i = 0; i < nC; i++) {
+    const c = ri(0, COLS - 1);
+    if (!row.trees.has(c)) row.coins.add(c);
+  }
 }
 function addGrass() { const r = mk('grass'); scatter(r, ri(2, 4), Math.random() < .5 ? 1 : 0); push(r); }
 function genSection() {
