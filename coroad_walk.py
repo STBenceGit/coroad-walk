@@ -135,19 +135,19 @@ def push_row(row):
     g['rows'].append(row)
     return len(g['rows']) - 1
 
-def scatter(row, nT, nC, free=None):
+def scatter(row, nT, nC, excluded=None):
     for _ in range(nT):
         c = ri(0, COLS - 1)
-        if not free or c not in free:
+        if not excluded or c not in excluded:
             row['trees'].add(c)
     for _ in range(nC):
         c = ri(0, COLS - 1)
         if c not in row['trees']:
             row['coins'].add(c)
 
-def add_grass():
+def add_grass(excluded=NONE):
     r = mk('grass')
-    scatter(r, ri(2, 4), 1 if random.random() < .5 else 0)
+    scatter(r, ri(2, 4), 1 if random.random() < .5 else 0, excluded)
     push_row(r)
 
 def gen_section():
@@ -156,6 +156,8 @@ def gen_section():
         c0 = ri(1, 7)
         cols = [c0 + 1, c0 + 3]
         span = [c0, c0 + 4]
+        if g['rows'] and g['rows'][-1]['type'] == 'grass':
+            g['rows'][-1]['trees'].difference_update(cols)
         plate1 = mk('grass', plates=cols)
         pi1 = push_row(plate1)
         gate1 = {'cols': cols, 'plateRow': pi1, 'openUntil': 0}
@@ -176,7 +178,7 @@ def gen_section():
         last['gate'] = gate2
         g['gates'].append(gate2)
         push_row(mk('fence', gate=gate2))
-        add_grass()
+        add_grass(excluded=cols)
         return
 
     k = random.random()
